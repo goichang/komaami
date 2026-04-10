@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>かぎ針編み図エディター</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f4f0;
+      --bg-tertiary: #eeede9;
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b6b6b;
+      --text-tertiary: #aaaaaa;
+      --border-light: rgba(0,0,0,0.12);
+      --border-mid: rgba(0,0,0,0.22);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-sans: system-ui, -apple-system, sans-serif;
+      --font-mono: 'Menlo', 'Monaco', 'Consolas', monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1e1e1e;
+        --bg-secondary: #2a2a2a;
+        --bg-tertiary: #333333;
+        --text-primary: #e8e8e8;
+        --text-secondary: #999999;
+        --text-tertiary: #555555;
+        --border-light: rgba(255,255,255,0.1);
+        --border-mid: rgba(255,255,255,0.2);
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--bg-primary);
+      border-bottom: 0.5px solid var(--border-light);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header h1 {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    header .subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 16px;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+      gap: 16px;
+      min-height: calc(100vh - 56px);
+    }
+
+    @media (max-width: 720px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .plabel {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      letter-spacing: .04em;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .seg-wrap {
+      display: flex;
+      border: 0.5px solid var(--border-mid);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .seg {
+      font-size: 12px;
+      padding: 5px 12px;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-sans);
+      transition: background .15s;
+    }
+
+    .seg:not(:last-child) {
+      border-right: 0.5px solid var(--border-light);
+    }
+
+    .seg.active {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .seg:hover:not(.active) {
+      background: var(--bg-secondary);
+    }
+
+    textarea {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 12px;
+      border: 0.5px solid var(--border-mid);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      resize: none;
+      line-height: 2;
+      min-height: 240px;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    textarea:focus {
+      border-color: rgba(0,0,0,.4);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      textarea:focus { border-color: rgba(255,255,255,.35); }
+    }
+
+    .legend {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .leg-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .li {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .lsym {
+      width: 22px;
+      height: 22px;
+      border: 0.5px solid var(--border-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .btn {
+      font-size: 12px;
+      padding: 5px 12px;
+      border: 0.5px solid var(--border-mid);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: background .15s;
+    }
+
+    .btn:hover { background: var(--bg-secondary); }
+    .btn:active { transform: scale(.97); }
+
+    .preview-box {
+      flex: 1;
+      border: 0.5px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      background: var(--bg-primary);
+      overflow: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 380px;
+      padding: 20px;
+    }
+
+    canvas { display: block; }
+
+    .tip {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🧶 かぎ針編み図エディター</h1>
+  <span class="subtitle">テキストで記号を入力すると編み図が描画されます</span>
+</header>
+
+<main class="main">
+  <div class="panel">
+    <div class="toolbar">
+      <span class="plabel">モード</span>
+      <div class="seg-wrap">
+        <button class="seg active" id="btn-flat" onclick="setMode('flat')">平編み</button>
+        <button class="seg" id="btn-circ" onclick="setMode('circ')">円形編み</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <span class="plabel">色付け</span>
+      <div class="seg-wrap">
+        <button class="seg active" id="btn-sym" onclick="setColor('sym')">目の種類</button>
+        <button class="seg" id="btn-row" onclick="setColor('row')">段ごと</button>
+      </div>
+    </div>
+
+    <textarea id="inp-flat" spellcheck="false">
+# 平編みサンプル（# から始まる行はコメント）
+. . . . . . . . . .
++ + + + + + + + + +
++ v + + + + v + + +
+T T T T T T T T T T
++ + ^ + + ^ + + + +
+* + + + + + + + + *
++ + + + + + + + + +
+    </textarea>
+
+    <textarea id="inp-circ" spellcheck="false" style="display:none;">
+# 円形編みサンプル（1行目が中心、下に行くほど外側）
+. . . . . .
++ + + + + + + + + + + +
++ v + + v + + v + + v +
+T T T T T T T T T T T T T T T T
++ + + v + + + v + + + v + + + v
++ + + + + + + + + + + + + + + + + + + +
+    </textarea>
+
+    <div class="legend">
+      <span class="plabel">記号一覧（スペース区切りで入力）</span>
+      <div class="leg-row">
+        <div class="li"><div class="lsym">.</div>鎖目</div>
+        <div class="li"><div class="lsym">+</div>細編み</div>
+        <div class="li"><div class="lsym">T</div>長編み</div>
+        <div class="li"><div class="lsym">t</div>中長編み</div>
+        <div class="li"><div class="lsym">3</div>長々編み</div>
+        <div class="li"><div class="lsym">v</div>増し目</div>
+        <div class="li"><div class="lsym">^</div>減らし目</div>
+        <div class="li"><div class="lsym">*</div>引き抜き編み</div>
+      </div>
+      <p class="tip">記号をスペースで区切って1段を1行に書いてください。# で始まる行はコメントとして無視されます。</p>
+    </div>
+  </div>
+
+  <div class="preview-panel">
+    <div class="toolbar">
+      <span class="plabel">プレビュー</span>
+      <button class="btn" onclick="doZoom(1)">＋</button>
+      <button class="btn" onclick="doZoom(-1)">－</button>
+    </div>
+    <div class="preview-box">
+      <canvas id="cv"></canvas>
+    </div>
+  </div>
+</main>
+
+<script>
+let sc = 1.0, mode = 'flat', colorMode = 'sym';
+
+const SYM_COLORS = {
+  '.': '#1D9E75',
+  '+': null,
+  't': '#534AB7',
+  'T': '#534AB7',
+  '3': '#534AB7',
+  'v': '#0F6E56',
+  '^': '#993C1D',
+  '*': '#BA7517'
+};
+
+const ROW_PALETTE = [
+  '#E24B4A','#BA7517','#639922','#1D9E75',
+  '#378ADD','#534AB7','#D4537E','#D85A30',
+  '#0F6E56','#185FA5','#3C3489','#993556'
+];
+
+function getPrimaryColor() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? '#e8e8e8' : '#1a1a1a';
+}
+
+function getBorderColor() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+}
+
+function getCenterColor() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.18)';
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('inp-flat').style.display = m === 'flat' ? '' : 'none';
+  document.getElementById('inp-circ').style.display = m === 'circ' ? '' : 'none';
+  document.getElementById('btn-flat').classList.toggle('active', m === 'flat');
+  document.getElementById('btn-circ').classList.toggle('active', m === 'circ');
+  render();
+}
+
+function setColor(c) {
+  colorMode = c;
+  document.getElementById('btn-sym').classList.toggle('active', c === 'sym');
+  document.getElementById('btn-row').classList.toggle('active', c === 'row');
+  render();
+}
+
+function getStrokeColor(sym, rowIdx) {
+  if (colorMode === 'row') return ROW_PALETTE[rowIdx % ROW_PALETTE.length];
+  const c = SYM_COLORS[sym];
+  return c !== null && c !== undefined ? c : getPrimaryColor();
+}
+
+function parseRows(id) {
+  return document.getElementById(id).value.split('\n')
+    .map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('#'))
+    .map(l => [...l].filter(c => c !== ' '));
+}
+
+function symDraw(ctx, sym, cx, cy, s, radAngle, color) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(radAngle);
+  const lw = Math.max(1.2, s * 0.06);
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = lw;
+  switch (sym) {
+    case '.':
+      ctx.beginPath(); ctx.ellipse(0, 0, s*.36, s*.21, 0, 0, Math.PI*2); ctx.stroke();
+      break;
+    case '+':
+      ctx.beginPath(); ctx.arc(0, 0, s*.19, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -s*.44); ctx.lineTo(0, s*.44); ctx.stroke();
+      break;
+    case 't':
+      ctx.beginPath(); ctx.moveTo(0, -s*.44); ctx.lineTo(0, s*.44); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-s*.22, -s*.2); ctx.lineTo(s*.22, -s*.2); ctx.stroke();
+      break;
+    case 'T':
+      ctx.beginPath(); ctx.moveTo(0, -s*.44); ctx.lineTo(0, s*.44); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-s*.22, -s*.25); ctx.lineTo(s*.22, -s*.25); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-s*.22, -s*.08); ctx.lineTo(s*.22, -s*.08); ctx.stroke();
+      break;
+    case '3':
+      ctx.beginPath(); ctx.moveTo(0, -s*.44); ctx.lineTo(0, s*.44); ctx.stroke();
+      for (let i = 0; i < 3; i++) {
+        const yy = -s*.28 + i*s*.16;
+        ctx.beginPath(); ctx.moveTo(-s*.22, yy); ctx.lineTo(s*.22, yy); ctx.stroke();
+      }
+      break;
+    case 'v':
+      ctx.beginPath(); ctx.moveTo(-s*.28, s*.42); ctx.lineTo(0, -s*.42); ctx.lineTo(s*.28, s*.42); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, s*.08, s*.14, 0, Math.PI*2); ctx.stroke();
+      break;
+    case '^':
+      ctx.beginPath(); ctx.moveTo(-s*.28, -s*.32); ctx.lineTo(0, s*.4); ctx.lineTo(s*.28, -s*.32); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-s*.28, -s*.32); ctx.lineTo(s*.28, -s*.32); ctx.stroke();
+      break;
+    case '*':
+      ctx.beginPath(); ctx.arc(0, 0, s*.18, 0, Math.PI*2); ctx.fill();
+      break;
+  }
+  ctx.restore();
+}
+
+function renderFlat(ctx, rows, S) {
+  const PAD = 20;
+  const maxC = Math.max(...rows.map(r => r.length));
+  const W = maxC * S + PAD * 2, H = rows.length * S + PAD * 2;
+  ctx.canvas.width = W; ctx.canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+  const lc = getBorderColor();
+
+  for (let r = 0; r < rows.length; r++) {
+    for (let c = 0; c < rows[r].length; c++) {
+      const cx = PAD + c * S + S / 2, cy = PAD + r * S + S / 2;
+      const sym = rows[r][c];
+      if (!sym) continue;
+      const color = getStrokeColor(sym, r);
+      symDraw(ctx, sym, cx, cy, S, 0, color);
+      if (c < rows[r].length - 1) {
+        const nextCx = PAD + (c+1) * S + S / 2;
+        ctx.strokeStyle = colorMode === 'row' ? ROW_PALETTE[r % ROW_PALETTE.length] + '55' : lc;
+        ctx.lineWidth = colorMode === 'row' ? .8 : .5;
+        ctx.beginPath();
+        ctx.moveTo(cx + S*.42, cy);
+        ctx.lineTo(nextCx - S*.42, cy);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function renderCirc(ctx, rows, S) {
+  const INNER = S * 1.0, GAP = S * 1.05;
+  const maxR = INNER + rows.length * GAP + S;
+  const sz = (maxR + S) * 2;
+  ctx.canvas.width = sz; ctx.canvas.height = sz;
+  ctx.clearRect(0, 0, sz, sz);
+  const OX = sz / 2, OY = sz / 2;
+  const ringC = getBorderColor();
+
+  for (let ri = 0; ri < rows.length; ri++) {
+    const row = rows[ri];
+    const n = row.length;
+    if (!n) continue;
+    const radius = INNER + ri * GAP + GAP / 2;
+    const rowColor = ROW_PALETTE[ri % ROW_PALETTE.length];
+    const angleStep = 2 * Math.PI / n;
+
+    ctx.strokeStyle = colorMode === 'row' ? rowColor + '44' : ringC;
+    ctx.lineWidth = colorMode === 'row' ? .8 : .6;
+    ctx.beginPath(); ctx.arc(OX, OY, radius, 0, Math.PI*2); ctx.stroke();
+
+    for (let ci = 0; ci < n; ci++) {
+      const baseAngle = -Math.PI / 2 + angleStep * ci;
+      const cx = OX + Math.cos(baseAngle) * radius;
+      const cy = OY + Math.sin(baseAngle) * radius;
+      const sym = row[ci];
+      if (!sym) continue;
+
+      if (ci < n - 1) {
+        const nx = OX + Math.cos(-Math.PI/2 + angleStep*(ci+1)) * radius;
+        const ny = OY + Math.sin(-Math.PI/2 + angleStep*(ci+1)) * radius;
+        const dx = nx - cx, dy = ny - cy, dist = Math.sqrt(dx*dx + dy*dy);
+        const shrink = S * .42;
+        if (dist > shrink * 2) {
+          const ux = dx/dist, uy = dy/dist;
+          ctx.strokeStyle = colorMode === 'row' ? rowColor + '55' : ringC;
+          ctx.lineWidth = colorMode === 'row' ? .8 : .5;
+          ctx.beginPath();
+          ctx.moveTo(cx + ux*shrink, cy + uy*shrink);
+          ctx.lineTo(nx - ux*shrink, ny - uy*shrink);
+          ctx.stroke();
+        }
+      }
+
+      const color = getStrokeColor(sym, ri);
+      symDraw(ctx, sym, cx, cy, S, baseAngle + Math.PI/2, color);
+    }
+  }
+
+  ctx.fillStyle = getCenterColor();
+  ctx.beginPath(); ctx.arc(OX, OY, S*.28, 0, Math.PI*2); ctx.fill();
+}
+
+function render() {
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const S = Math.round(24 * sc);
+  const rows = parseRows(mode === 'flat' ? 'inp-flat' : 'inp-circ');
+  if (!rows.length) {
+    cv.width = 200; cv.height = 60; ctx.clearRect(0, 0, 200, 60);
+    ctx.fillStyle = '#aaa';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('記号を入力してください', 16, 35);
+    return;
+  }
+  if (mode === 'flat') renderFlat(ctx, rows, S);
+  else renderCirc(ctx, rows, S);
+}
+
+function doZoom(d) { sc = Math.max(.4, Math.min(3, sc + d*.25)); render(); }
+
+document.getElementById('inp-flat').addEventListener('input', render);
+document.getElementById('inp-circ').addEventListener('input', render);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+render();
+</script>
+
+</body>
+</html>
