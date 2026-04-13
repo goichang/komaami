@@ -286,6 +286,11 @@
           </div>
         </div>
 
+        <div class="toolbar">
+          <span class="plabel">テキスト</span>
+          <button class="btn" onclick="exportTxt()">テキスト保存</button>
+        </div>
+
         <textarea id="inp-flat" spellcheck="false">
 # 平編みサンプル（# から始まる行はコメント）
 . . . . . . . . . .
@@ -357,6 +362,7 @@ x x x x x x x x x x x x x x x x x x x x
           <span class="plabel">プレビュー</span>
           <button class="btn" onclick="doZoom(1)">＋</button>
           <button class="btn" onclick="doZoom(-1)">－</button>
+          <button class="btn" onclick="exportSVG()">SVG保存</button>
         </div>
         <div class="preview-box">
           <canvas id="cv"></canvas>
@@ -648,6 +654,371 @@ x x x x x x x x x x x x x x x x x x x x
         ctx.beginPath();
         ctx.arc(OX, OY, S * 0.28, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      function svgEl(tag, attrs) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        return el;
+      }
+
+      function symDrawSVG(parent, sym, cx, cy, s, radAngle, color) {
+        const deg = (radAngle * 180) / Math.PI;
+        const g = svgEl("g", {
+          transform: `translate(${cx},${cy}) rotate(${deg})`,
+        });
+        const sw = Math.max(1.2, s * 0.06);
+        switch (sym) {
+          case ".":
+            g.appendChild(
+              svgEl("ellipse", {
+                cx: 0,
+                cy: 0,
+                rx: s * 0.36,
+                ry: s * 0.21,
+                stroke: color,
+                fill: "none",
+                "stroke-width": sw,
+              }),
+            );
+            break;
+          case "x":
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.2,
+                y1: -s * 0.2,
+                x2: s * 0.2,
+                y2: s * 0.2,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: s * 0.2,
+                y1: -s * 0.2,
+                x2: -s * 0.2,
+                y2: s * 0.2,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            break;
+          case "t":
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.28,
+                y1: -s * 0.35,
+                x2: s * 0.28,
+                y2: -s * 0.35,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: 0,
+                y1: -s * 0.35,
+                x2: 0,
+                y2: s * 0.44,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            break;
+          case "T":
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.28,
+                y1: -s * 0.35,
+                x2: s * 0.28,
+                y2: -s * 0.35,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.14,
+                y1: -s * 0.18,
+                x2: s * 0.14,
+                y2: -s * 0.02,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: 0,
+                y1: -s * 0.35,
+                x2: 0,
+                y2: s * 0.44,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            break;
+          case "3":
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.28,
+                y1: -s * 0.35,
+                x2: s * 0.28,
+                y2: -s * 0.35,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.14,
+                y1: -s * 0.26,
+                x2: s * 0.14,
+                y2: -s * 0.1,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.14,
+                y1: -s * 0.04,
+                x2: s * 0.14,
+                y2: s * 0.12,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: 0,
+                y1: -s * 0.35,
+                x2: 0,
+                y2: s * 0.44,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            break;
+          case "v":
+            g.appendChild(
+              svgEl("polyline", {
+                points: `${-s * 0.28},${-s * 0.42} 0,${s * 0.42} ${s * 0.28},${-s * 0.42}`,
+                stroke: color,
+                fill: "none",
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("circle", {
+                cx: 0,
+                cy: -s * 0.08,
+                r: s * 0.14,
+                stroke: color,
+                fill: "none",
+                "stroke-width": sw,
+              }),
+            );
+            break;
+          case "^":
+            g.appendChild(
+              svgEl("polyline", {
+                points: `${-s * 0.28},${s * 0.32} 0,${-s * 0.4} ${s * 0.28},${s * 0.32}`,
+                stroke: color,
+                fill: "none",
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.28,
+                y1: s * 0.32,
+                x2: s * 0.28,
+                y2: s * 0.32,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            break;
+          case "*":
+            g.appendChild(
+              svgEl("circle", {
+                cx: 0,
+                cy: 0,
+                r: s * 0.18,
+                fill: color,
+                stroke: "none",
+              }),
+            );
+            break;
+        }
+        parent.appendChild(g);
+      }
+
+      function renderFlatSVG(rows, S) {
+        const PAD = 20;
+        const maxC = Math.max(...rows.map((r) => r.length));
+        const W = maxC * S + PAD * 2,
+          H = rows.length * S + PAD * 2;
+        const svg = svgEl("svg", {
+          xmlns: "http://www.w3.org/2000/svg",
+          width: W,
+          height: H,
+          viewBox: `0 0 ${W} ${H}`,
+        });
+        const lc = getBorderColor();
+
+        for (let r = 0; r < rows.length; r++) {
+          for (let c = 0; c < rows[r].length; c++) {
+            const cx = PAD + c * S + S / 2,
+              cy = PAD + r * S + S / 2;
+            const sym = rows[r][c];
+            if (!sym) continue;
+            const color = getStrokeColor(sym, r);
+            if (c < rows[r].length - 1) {
+              const nextCx = PAD + (c + 1) * S + S / 2;
+              const lineColor =
+                colorMode === "row"
+                  ? ROW_PALETTE[r % ROW_PALETTE.length] + "55"
+                  : lc;
+              const lw = colorMode === "row" ? 0.8 : 0.5;
+              svg.appendChild(
+                svgEl("line", {
+                  x1: cx + S * 0.42,
+                  y1: cy,
+                  x2: nextCx - S * 0.42,
+                  y2: cy,
+                  stroke: lineColor,
+                  "stroke-width": lw,
+                }),
+              );
+            }
+            symDrawSVG(svg, sym, cx, cy, S, 0, color);
+          }
+        }
+        return svg;
+      }
+
+      function renderCircSVG(rows, S) {
+        const INNER = S * 1.0,
+          GAP = S * 1.05;
+        const maxR = INNER + rows.length * GAP + S;
+        const sz = (maxR + S) * 2;
+        const OX = sz / 2,
+          OY = sz / 2;
+        const ringC = getBorderColor();
+        const svg = svgEl("svg", {
+          xmlns: "http://www.w3.org/2000/svg",
+          width: sz,
+          height: sz,
+          viewBox: `0 0 ${sz} ${sz}`,
+        });
+
+        for (let ri = 0; ri < rows.length; ri++) {
+          const row = rows[ri];
+          const n = row.length;
+          if (!n) continue;
+          const radius = INNER + ri * GAP + GAP / 2;
+          const rowColor = ROW_PALETTE[ri % ROW_PALETTE.length];
+          const angleStep = (2 * Math.PI) / n;
+
+          svg.appendChild(
+            svgEl("circle", {
+              cx: OX,
+              cy: OY,
+              r: radius,
+              stroke: colorMode === "row" ? rowColor + "44" : ringC,
+              fill: "none",
+              "stroke-width": colorMode === "row" ? 0.8 : 0.6,
+            }),
+          );
+
+          for (let ci = 0; ci < n; ci++) {
+            const baseAngle = -Math.PI / 2 + angleStep * ci;
+            const cx = OX + Math.cos(baseAngle) * radius;
+            const cy = OY + Math.sin(baseAngle) * radius;
+            const sym = row[ci];
+            if (!sym) continue;
+
+            if (ci < n - 1) {
+              const nx =
+                OX + Math.cos(-Math.PI / 2 + angleStep * (ci + 1)) * radius;
+              const ny =
+                OY + Math.sin(-Math.PI / 2 + angleStep * (ci + 1)) * radius;
+              const dx = nx - cx,
+                dy = ny - cy,
+                dist = Math.sqrt(dx * dx + dy * dy);
+              const shrink = S * 0.42;
+              if (dist > shrink * 2) {
+                const ux = dx / dist,
+                  uy = dy / dist;
+                svg.appendChild(
+                  svgEl("line", {
+                    x1: cx + ux * shrink,
+                    y1: cy + uy * shrink,
+                    x2: nx - ux * shrink,
+                    y2: ny - uy * shrink,
+                    stroke: colorMode === "row" ? rowColor + "55" : ringC,
+                    "stroke-width": colorMode === "row" ? 0.8 : 0.5,
+                  }),
+                );
+              }
+            }
+
+            const color = getStrokeColor(sym, ri);
+            symDrawSVG(svg, sym, cx, cy, S, baseAngle + Math.PI / 2, color);
+          }
+        }
+
+        svg.appendChild(
+          svgEl("circle", {
+            cx: OX,
+            cy: OY,
+            r: S * 0.28,
+            fill: getCenterColor(),
+            stroke: "none",
+          }),
+        );
+
+        return svg;
+      }
+
+      function exportTxt() {
+        const id = mode === "flat" ? "inp-flat" : "inp-circ";
+        const text = document.getElementById(id).value;
+        const input = prompt(
+          "ファイル名を入力してください（.txt が付与されます）",
+          "amimono",
+        );
+        if (input === null) return;
+        const filename = (input.trim() || "amimono") + ".txt";
+        const blob = new Blob([text], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      function exportSVG() {
+        const S = Math.round(24 * sc);
+        const rows = parseRows(mode === "flat" ? "inp-flat" : "inp-circ");
+        if (!rows.length) return;
+        const input = prompt(
+          "ファイル名を入力してください（.svg が付与されます）",
+          "amimono",
+        );
+        if (input === null) return;
+        const filename = (input.trim() || "amimono") + ".svg";
+        const svg =
+          mode === "flat" ? renderFlatSVG(rows, S) : renderCircSVG(rows, S);
+        const svgStr = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgStr], { type: "image/svg+xml" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
       }
 
       function render() {
