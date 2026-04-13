@@ -8,7 +8,7 @@
 
 ### 準備
 
- - VSCode拡張の`ritwickdey.LiveServer`をインストール
+- VSCode拡張の`ritwickdey.LiveServer`をインストール
 
 ```bash
 npm i
