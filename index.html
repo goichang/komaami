@@ -297,7 +297,6 @@
 x x x x x x x x x x
 x v x x x x v x x x
 T T T T T T T T T T
-x x ^ x x ^ x x x x
 * x x x x x x x x *
 x x x x x x x x x x
     </textarea
@@ -309,7 +308,6 @@ x x x x x x x x x x
 x x x x x x x x x x x x
 x v x x v x x v x x v x
 T T T T T T T T T T T T T T T T
-x x x v x x x v x x x v x x x v
 x x x x x x x x x x x x x x x x x x x x
     </textarea
         >
@@ -326,6 +324,10 @@ x x x x x x x x x x x x x x x x x x x x
               細編み
             </div>
             <div class="li">
+              <div class="lsym">v</div>
+              細編み2目
+            </div>
+            <div class="li">
               <div class="lsym">w</div>
               中長編み2目
             </div>
@@ -340,14 +342,6 @@ x x x x x x x x x x x x x x x x x x x x
             <div class="li">
               <div class="lsym">3</div>
               長々編み
-            </div>
-            <div class="li">
-              <div class="lsym">v</div>
-              増し目
-            </div>
-            <div class="li">
-              <div class="lsym">^</div>
-              減らし目
             </div>
             <div class="li">
               <div class="lsym">*</div>
@@ -386,12 +380,11 @@ x x x x x x x x x x x x x x x x x x x x
       const SYM_COLORS = {
         ".": "#1D9E75",
         x: null,
+        v: null,
         w: "#534AB7",
         t: "#534AB7",
         T: "#534AB7",
         3: "#534AB7",
-        v: "#0F6E56",
-        "^": "#993C1D",
         "*": "#BA7517",
         s: null,
       };
@@ -615,46 +608,6 @@ x x x x x x x x x x x x x x x x x x x x
               }),
             );
             break;
-          case "v":
-            g.appendChild(
-              svgEl("polyline", {
-                points: `${-s * 0.28},${-s * 0.42} 0,${s * 0.42} ${s * 0.28},${-s * 0.42}`,
-                stroke: color,
-                fill: "none",
-                "stroke-width": sw,
-              }),
-            );
-            g.appendChild(
-              svgEl("circle", {
-                cx: 0,
-                cy: -s * 0.08,
-                r: s * 0.14,
-                stroke: color,
-                fill: "none",
-                "stroke-width": sw,
-              }),
-            );
-            break;
-          case "^":
-            g.appendChild(
-              svgEl("polyline", {
-                points: `${-s * 0.28},${s * 0.32} 0,${-s * 0.4} ${s * 0.28},${s * 0.32}`,
-                stroke: color,
-                fill: "none",
-                "stroke-width": sw,
-              }),
-            );
-            g.appendChild(
-              svgEl("line", {
-                x1: -s * 0.28,
-                y1: s * 0.32,
-                x2: s * 0.28,
-                y2: s * 0.32,
-                stroke: color,
-                "stroke-width": sw,
-              }),
-            );
-            break;
           case "*":
             g.appendChild(
               svgEl("circle", {
@@ -663,6 +616,49 @@ x x x x x x x x x x x x x x x x x x x x
                 r: s * 0.18,
                 fill: color,
                 stroke: "none",
+              }),
+            );
+            break;
+          case "v":
+            // 細編み2目：下部合流のV字 + 上部のX（細編み記号）
+            g.appendChild(
+              svgEl("line", {
+                x1: 0,
+                y1: s * 0.33,
+                x2: -s * 0.5,
+                y2: -s * 0.33,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: 0,
+                y1: s * 0.33,
+                x2: s * 0.5,
+                y2: -s * 0.33,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.17,
+                y1: 0,
+                x2: s * 0.17,
+                y2: -s * 0.33,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: s * 0.17,
+                y1: 0,
+                x2: -s * 0.17,
+                y2: -s * 0.33,
+                stroke: color,
+                "stroke-width": sw,
               }),
             );
             break;
