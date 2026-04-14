@@ -1,0 +1,11 @@
+{
+  "name": "komaami",
+  "private": true,
+  "scripts": {
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  }
+}
