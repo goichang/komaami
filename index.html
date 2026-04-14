@@ -983,42 +983,70 @@ x x x x x x x x x x x x x x x x x x x x
         return svg;
       }
 
-      function exportTxt() {
+      async function exportTxt() {
         const id = mode === "flat" ? "inp-flat" : "inp-circ";
         const text = document.getElementById(id).value;
-        const input = prompt(
-          "ファイル名を入力してください（.txt が付与されます）",
-          "amimono",
-        );
-        if (input === null) return;
-        const filename = (input.trim() || "amimono") + ".txt";
-        const blob = new Blob([text], { type: "text/plain" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        if (window.showSaveFilePicker) {
+          try {
+            const fileHandle = await window.showSaveFilePicker({
+              suggestedName: "amimono.txt",
+              types: [{ description: "テキストファイル", accept: { "text/plain": [".txt"] } }],
+            });
+            const writable = await fileHandle.createWritable();
+            await writable.write(text);
+            await writable.close();
+          } catch (e) {
+            if (e.name !== "AbortError") throw e;
+          }
+        } else {
+          const input = prompt(
+            "ファイル名を入力してください（.txt が付与されます）",
+            "amimono",
+          );
+          if (input === null) return;
+          const filename = (input.trim() || "amimono") + ".txt";
+          const blob = new Blob([text], { type: "text/plain" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }
       }
 
-      function exportSVG() {
+      async function exportSVG() {
         const S = Math.round(24 * sc);
         const rows = parseRows(mode === "flat" ? "inp-flat" : "inp-circ");
         if (!rows.length) return;
-        const input = prompt(
-          "ファイル名を入力してください（.svg が付与されます）",
-          "amimono",
-        );
-        if (input === null) return;
-        const filename = (input.trim() || "amimono") + ".svg";
         const svg =
           mode === "flat" ? renderFlatSVG(rows, S) : renderCircSVG(rows, S);
         const svgStr = new XMLSerializer().serializeToString(svg);
-        const blob = new Blob([svgStr], { type: "image/svg+xml" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        if (window.showSaveFilePicker) {
+          try {
+            const fileHandle = await window.showSaveFilePicker({
+              suggestedName: "amimono.svg",
+              types: [{ description: "SVGファイル", accept: { "image/svg+xml": [".svg"] } }],
+            });
+            const writable = await fileHandle.createWritable();
+            await writable.write(svgStr);
+            await writable.close();
+          } catch (e) {
+            if (e.name !== "AbortError") throw e;
+          }
+        } else {
+          const input = prompt(
+            "ファイル名を入力してください（.svg が付与されます）",
+            "amimono",
+          );
+          if (input === null) return;
+          const filename = (input.trim() || "amimono") + ".svg";
+          const blob = new Blob([svgStr], { type: "image/svg+xml" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }
       }
 
       function render() {
