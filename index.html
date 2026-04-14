@@ -241,7 +241,7 @@
         padding: 20px;
       }
 
-      canvas {
+      #preview-svg svg {
         display: block;
       }
 
@@ -369,7 +369,7 @@ x x x x x x x x x x x x x x x x x x x x
           <button class="btn" onclick="exportSVG()">SVG保存</button>
         </div>
         <div class="preview-box">
-          <canvas id="cv"></canvas>
+          <div id="preview-svg"></div>
         </div>
       </div>
     </main>
@@ -464,203 +464,6 @@ x x x x x x x x x x x x x x x x x x x x
           .map((l) => l.trim())
           .filter((l) => l.length > 0 && !l.startsWith("#"))
           .map((l) => [...l].filter((c) => c !== " " && c !== "\t"));
-      }
-
-      function symDraw(ctx, sym, cx, cy, s, radAngle, color) {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(radAngle);
-        const lw = Math.max(1.2, s * 0.06);
-        ctx.strokeStyle = color;
-        ctx.fillStyle = color;
-        ctx.lineWidth = lw;
-        switch (sym) {
-          case ".":
-            ctx.beginPath();
-            ctx.ellipse(0, 0, s * 0.36, s * 0.21, 0, 0, Math.PI * 2);
-            ctx.stroke();
-            break;
-          case "x":
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.2, -s * 0.2);
-            ctx.lineTo(s * 0.2, s * 0.2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(s * 0.2, -s * 0.2);
-            ctx.lineTo(-s * 0.2, s * 0.2);
-            ctx.stroke();
-            break;
-          case "t":
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.28, -s * 0.35);
-            ctx.lineTo(s * 0.28, -s * 0.35);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, -s * 0.35);
-            ctx.lineTo(0, s * 0.44);
-            ctx.stroke();
-            break;
-          case "T":
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.28, -s * 0.35);
-            ctx.lineTo(s * 0.28, -s * 0.35);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.14, -s * 0.18);
-            ctx.lineTo(s * 0.14, -s * 0.02);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, -s * 0.35);
-            ctx.lineTo(0, s * 0.44);
-            ctx.stroke();
-            break;
-          case "3":
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.28, -s * 0.35);
-            ctx.lineTo(s * 0.28, -s * 0.35);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.14, -s * 0.26);
-            ctx.lineTo(s * 0.14, -s * 0.1);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.14, -s * 0.04);
-            ctx.lineTo(s * 0.14, s * 0.12);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, -s * 0.35);
-            ctx.lineTo(0, s * 0.44);
-            ctx.stroke();
-            break;
-          case "v":
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.28, -s * 0.42);
-            ctx.lineTo(0, s * 0.42);
-            ctx.lineTo(s * 0.28, -s * 0.42);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(0, -s * 0.08, s * 0.14, 0, Math.PI * 2);
-            ctx.stroke();
-            break;
-          case "^":
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.28, s * 0.32);
-            ctx.lineTo(0, -s * 0.4);
-            ctx.lineTo(s * 0.28, s * 0.32);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(-s * 0.28, s * 0.32);
-            ctx.lineTo(s * 0.28, s * 0.32);
-            ctx.stroke();
-            break;
-          case "*":
-            ctx.beginPath();
-            ctx.arc(0, 0, s * 0.18, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-          case "s":
-            break;
-        }
-        ctx.restore();
-      }
-
-      function renderFlat(ctx, rows, S) {
-        const PAD = 20;
-        const maxC = Math.max(...rows.map((r) => r.length));
-        const W = maxC * S + PAD * 2,
-          H = rows.length * S + PAD * 2;
-        ctx.canvas.width = W;
-        ctx.canvas.height = H;
-        ctx.clearRect(0, 0, W, H);
-        const lc = getBorderColor();
-
-        for (let r = 0; r < rows.length; r++) {
-          for (let c = 0; c < rows[r].length; c++) {
-            const cx = PAD + c * S + S / 2,
-              cy = PAD + r * S + S / 2;
-            const sym = rows[r][c];
-            if (!sym) continue;
-            const color = getStrokeColor(sym, r);
-            if (sym !== "s") symDraw(ctx, sym, cx, cy, S, 0, color);
-            if (c < rows[r].length - 1 && sym !== "s" && rows[r][c + 1] !== "s") {
-              const nextCx = PAD + (c + 1) * S + S / 2;
-              ctx.strokeStyle =
-                colorMode === "row"
-                  ? ROW_PALETTE[r % ROW_PALETTE.length] + "55"
-                  : lc;
-              ctx.lineWidth = colorMode === "row" ? 0.8 : 0.5;
-              ctx.beginPath();
-              ctx.moveTo(cx + S * 0.42, cy);
-              ctx.lineTo(nextCx - S * 0.42, cy);
-              ctx.stroke();
-            }
-          }
-        }
-      }
-
-      function renderCirc(ctx, rows, S) {
-        const INNER = S * 1.0,
-          GAP = S * 1.05;
-        const maxR = INNER + rows.length * GAP + S;
-        const sz = (maxR + S) * 2;
-        ctx.canvas.width = sz;
-        ctx.canvas.height = sz;
-        ctx.clearRect(0, 0, sz, sz);
-        const OX = sz / 2,
-          OY = sz / 2;
-        const ringC = getBorderColor();
-
-        for (let ri = 0; ri < rows.length; ri++) {
-          const row = rows[ri];
-          const n = row.length;
-          if (!n) continue;
-          const radius = INNER + ri * GAP + GAP / 2;
-          const rowColor = ROW_PALETTE[ri % ROW_PALETTE.length];
-          const angleStep = (2 * Math.PI) / n;
-
-          ctx.strokeStyle = colorMode === "row" ? rowColor + "44" : ringC;
-          ctx.lineWidth = colorMode === "row" ? 0.8 : 0.6;
-          ctx.beginPath();
-          ctx.arc(OX, OY, radius, 0, Math.PI * 2);
-          ctx.stroke();
-
-          for (let ci = 0; ci < n; ci++) {
-            const baseAngle = -Math.PI / 2 + angleStep * ci;
-            const cx = OX + Math.cos(baseAngle) * radius;
-            const cy = OY + Math.sin(baseAngle) * radius;
-            const sym = row[ci];
-            if (!sym) continue;
-
-            if (ci < n - 1 && sym !== "s" && row[ci + 1] !== "s") {
-              const nx =
-                OX + Math.cos(-Math.PI / 2 + angleStep * (ci + 1)) * radius;
-              const ny =
-                OY + Math.sin(-Math.PI / 2 + angleStep * (ci + 1)) * radius;
-              const dx = nx - cx,
-                dy = ny - cy,
-                dist = Math.sqrt(dx * dx + dy * dy);
-              const shrink = S * 0.42;
-              if (dist > shrink * 2) {
-                const ux = dx / dist,
-                  uy = dy / dist;
-                ctx.strokeStyle = colorMode === "row" ? rowColor + "55" : ringC;
-                ctx.lineWidth = colorMode === "row" ? 0.8 : 0.5;
-                ctx.beginPath();
-                ctx.moveTo(cx + ux * shrink, cy + uy * shrink);
-                ctx.lineTo(nx - ux * shrink, ny - uy * shrink);
-                ctx.stroke();
-              }
-            }
-
-            const color = getStrokeColor(sym, ri);
-            if (sym !== "s") symDraw(ctx, sym, cx, cy, S, baseAngle + Math.PI / 2, color);
-          }
-        }
-
-        ctx.fillStyle = getCenterColor();
-        ctx.beginPath();
-        ctx.arc(OX, OY, S * 0.28, 0, Math.PI * 2);
-        ctx.fill();
       }
 
       function svgEl(tag, attrs) {
@@ -1059,21 +862,20 @@ x x x x x x x x x x x x x x x x x x x x
       }
 
       function render() {
-        const cv = document.getElementById("cv");
-        const ctx = cv.getContext("2d");
+        const container = document.getElementById("preview-svg");
         const S = Math.round(24 * sc);
         const rows = parseRows(mode === "flat" ? "inp-flat" : "inp-circ");
+        container.innerHTML = "";
         if (!rows.length) {
-          cv.width = 200;
-          cv.height = 60;
-          ctx.clearRect(0, 0, 200, 60);
-          ctx.fillStyle = "#aaa";
-          ctx.font = "13px sans-serif";
-          ctx.fillText("記号を入力してください", 16, 35);
+          container.textContent = "記号を入力してください";
+          container.style.color = "#aaa";
+          container.style.font = "13px sans-serif";
           return;
         }
-        if (mode === "flat") renderFlat(ctx, rows, S);
-        else renderCirc(ctx, rows, S);
+        container.style.color = "";
+        container.style.font = "";
+        const svg = mode === "flat" ? renderFlatSVG(rows, S) : renderCircSVG(rows, S);
+        container.appendChild(svg);
       }
 
       function doZoom(d) {
