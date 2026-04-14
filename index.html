@@ -349,9 +349,13 @@ x x x x x x x x x x x x x x x x x x x x
               <div class="lsym">*</div>
               引き抜き編み
             </div>
+            <div class="li">
+              <div class="lsym">s</div>
+              空白
+            </div>
           </div>
           <p class="tip">
-            記号をスペースで区切って1段を1行に書いてください。#
+            記号をスペースまたはタブで区切って1段を1行に書いてください。スペース・タブは区切り文字として扱われ、図には含まれません。空白マスを置きたい場合は <code>s</code> を使ってください。#
             で始まる行はコメントとして無視されます。
           </p>
         </div>
@@ -384,6 +388,7 @@ x x x x x x x x x x x x x x x x x x x x
         v: "#0F6E56",
         "^": "#993C1D",
         "*": "#BA7517",
+        s: null,
       };
 
       const ROW_PALETTE = [
@@ -458,7 +463,7 @@ x x x x x x x x x x x x x x x x x x x x
           .value.split("\n")
           .map((l) => l.trim())
           .filter((l) => l.length > 0 && !l.startsWith("#"))
-          .map((l) => [...l].filter((c) => c !== " "));
+          .map((l) => [...l].filter((c) => c !== " " && c !== "\t"));
       }
 
       function symDraw(ctx, sym, cx, cy, s, radAngle, color) {
@@ -553,6 +558,8 @@ x x x x x x x x x x x x x x x x x x x x
             ctx.arc(0, 0, s * 0.18, 0, Math.PI * 2);
             ctx.fill();
             break;
+          case "s":
+            break;
         }
         ctx.restore();
       }
@@ -574,8 +581,8 @@ x x x x x x x x x x x x x x x x x x x x
             const sym = rows[r][c];
             if (!sym) continue;
             const color = getStrokeColor(sym, r);
-            symDraw(ctx, sym, cx, cy, S, 0, color);
-            if (c < rows[r].length - 1) {
+            if (sym !== "s") symDraw(ctx, sym, cx, cy, S, 0, color);
+            if (c < rows[r].length - 1 && sym !== "s" && rows[r][c + 1] !== "s") {
               const nextCx = PAD + (c + 1) * S + S / 2;
               ctx.strokeStyle =
                 colorMode === "row"
@@ -624,7 +631,7 @@ x x x x x x x x x x x x x x x x x x x x
             const sym = row[ci];
             if (!sym) continue;
 
-            if (ci < n - 1) {
+            if (ci < n - 1 && sym !== "s" && row[ci + 1] !== "s") {
               const nx =
                 OX + Math.cos(-Math.PI / 2 + angleStep * (ci + 1)) * radius;
               const ny =
@@ -646,7 +653,7 @@ x x x x x x x x x x x x x x x x x x x x
             }
 
             const color = getStrokeColor(sym, ri);
-            symDraw(ctx, sym, cx, cy, S, baseAngle + Math.PI / 2, color);
+            if (sym !== "s") symDraw(ctx, sym, cx, cy, S, baseAngle + Math.PI / 2, color);
           }
         }
 
@@ -851,6 +858,8 @@ x x x x x x x x x x x x x x x x x x x x
               }),
             );
             break;
+          case "s":
+            break;
         }
         parent.appendChild(g);
       }
@@ -875,7 +884,7 @@ x x x x x x x x x x x x x x x x x x x x
             const sym = rows[r][c];
             if (!sym) continue;
             const color = getStrokeColor(sym, r);
-            if (c < rows[r].length - 1) {
+            if (c < rows[r].length - 1 && sym !== "s" && rows[r][c + 1] !== "s") {
               const nextCx = PAD + (c + 1) * S + S / 2;
               const lineColor =
                 colorMode === "row"
@@ -893,7 +902,7 @@ x x x x x x x x x x x x x x x x x x x x
                 }),
               );
             }
-            symDrawSVG(svg, sym, cx, cy, S, 0, color);
+            if (sym !== "s") symDrawSVG(svg, sym, cx, cy, S, 0, color);
           }
         }
         return svg;
@@ -940,7 +949,7 @@ x x x x x x x x x x x x x x x x x x x x
             const sym = row[ci];
             if (!sym) continue;
 
-            if (ci < n - 1) {
+            if (ci < n - 1 && sym !== "s" && row[ci + 1] !== "s") {
               const nx =
                 OX + Math.cos(-Math.PI / 2 + angleStep * (ci + 1)) * radius;
               const ny =
@@ -966,7 +975,7 @@ x x x x x x x x x x x x x x x x x x x x
             }
 
             const color = getStrokeColor(sym, ri);
-            symDrawSVG(svg, sym, cx, cy, S, baseAngle + Math.PI / 2, color);
+            if (sym !== "s") symDrawSVG(svg, sym, cx, cy, S, baseAngle + Math.PI / 2, color);
           }
         }
 
