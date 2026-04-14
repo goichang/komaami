@@ -326,6 +326,10 @@ x x x x x x x x x x x x x x x x x x x x
               細編み
             </div>
             <div class="li">
+              <div class="lsym">w</div>
+              中長編み2目
+            </div>
+            <div class="li">
               <div class="lsym">T</div>
               長編み
             </div>
@@ -382,6 +386,7 @@ x x x x x x x x x x x x x x x x x x x x
       const SYM_COLORS = {
         ".": "#1D9E75",
         x: null,
+        w: "#534AB7",
         t: "#534AB7",
         T: "#534AB7",
         3: "#534AB7",
@@ -658,6 +663,49 @@ x x x x x x x x x x x x x x x x x x x x
                 r: s * 0.18,
                 fill: color,
                 stroke: "none",
+              }),
+            );
+            break;
+          case "w":
+            // 細編み2目：下部で合流する2本の腕、各腕の上部に横棒
+            g.appendChild(
+              svgEl("line", {
+                x1: 0,
+                y1: s * 0.48,
+                x2: -s * 0.33,
+                y2: -s * 0.48,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: 0,
+                y1: s * 0.48,
+                x2: s * 0.33,
+                y2: -s * 0.48,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: -s * 0.5,
+                y1: -s * 0.48,
+                x2: -s * 0.17,
+                y2: -s * 0.48,
+                stroke: color,
+                "stroke-width": sw,
+              }),
+            );
+            g.appendChild(
+              svgEl("line", {
+                x1: s * 0.17,
+                y1: -s * 0.48,
+                x2: s * 0.5,
+                y2: -s * 0.48,
+                stroke: color,
+                "stroke-width": sw,
               }),
             );
             break;
